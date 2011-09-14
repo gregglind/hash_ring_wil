@@ -32,7 +32,13 @@
     :license: BSD
 """
 
-import hashlib
+try:
+    import hashlib
+    new_md5 = hashlib.md5
+except ImportError:  # ancient pythons (<= 2.4)
+    import md5
+    new_md5 = md5.new
+
 import math
 from bisect import bisect
 
@@ -154,6 +160,6 @@ class HashRing(object):
                 | b_key[entry_fn(0)] )
 
     def _hash_digest(self, key):
-        m = hashlib.md5()
+        m = new_md5()
         m.update(key)
         return map(ord, m.digest())
