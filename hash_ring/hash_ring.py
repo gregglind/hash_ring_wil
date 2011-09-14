@@ -38,10 +38,12 @@ from bisect import bisect
 
 class HashRing(object):
 
-    def __init__(self, nodes=None, weights=None):
+    def __init__(self, nodes=None, weights=None, replicas=100):
         """`nodes` is a list of objects that have a proper __str__ representation.
         `weights` is dictionary that sets weights to the nodes.  The default
         weight is that all nodes are equal.
+        `replicas` is the number of replicas to make.  Size of the ring will be 
+        replicates * len(nodes).
         """
         self.ring = dict()
         self._sorted_keys = []
@@ -52,10 +54,13 @@ class HashRing(object):
             weights = {}
         self.weights = weights
 
-        self._generate_circle()
+        self._generate_circle(replicas=replicas)
 
-    def _generate_circle(self):
+    def _generate_circle(self,replicas=100):
         """Generates the circle.
+        
+        `replicas` is the number of replicas.  More replicas (up to a point)
+        give better distribution.  http://www.lexemetech.com/2007/11/consistent-hashing.html
         """
         total_weight = 0
         for node in self.nodes:
@@ -72,7 +77,7 @@ class HashRing(object):
             for j in xrange(0, int(factor)):
                 b_key = self._hash_digest( '%s-%s' % (node, j) )
 
-                for i in xrange(0, 3):
+                for i in xrange(0, replicas):
                     key = self._hash_val(b_key, lambda x: x+i*4)
                     self.ring[key] = node
                     self._sorted_keys.append(key)
